@@ -20,9 +20,9 @@ cmd(
         from,
         {
           image: {
-            url: "https://i.ibb.co/SDWZFh23/malvin-xd.jpg",
+            url: "https://files.catbox.moe/ue4ppc.jpg",
           },
-          caption: `𝗠𝗔𝗟𝗨 𝗫𝗗 𝗜𝗦 𝗔𝗟𝗜𝗩𝗘 𝗡𝗢𝗪  
+          caption: `AGNi 𝗜𝗦 𝗔𝗟𝗜𝗩𝗘 𝗡𝗢𝗪  
   
 𝗼𝗳𝗳𝗶𝗰𝗶𝗮𝗹 𝘄𝗵𝗮𝘁𝘀𝗮𝗽𝗽 𝗰𝗵𝗮𝗻𝗲𝗹 -: https://whatsapp.com/channel/0029VbB3YxTDJ6H15SKoBv3S
 
