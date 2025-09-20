@@ -3,6 +3,10 @@ const yts = require("yt-search");
 const ytdl = require("ytdl-core");
 const fs = require("fs");
 const path = require("path");
+const events = require("events");
+
+// Fix MaxListenersExceededWarning
+events.EventEmitter.defaultMaxListeners = 50;
 
 cmd(
   {
@@ -16,12 +20,12 @@ cmd(
     try {
       if (!q) return reply("*නමක් හරි ලින්ක් එකක් හරි දෙන්න* 🌚❤️");
 
-      // Search for the video
+      // Search YouTube
       const search = await yts(q);
       const data = search.videos[0];
       if (!data) return reply("❌ Video not found!");
 
-      // Metadata description
+      // Metadata
       let desc = `
 *❤️ agni SONG DOWNLOADER ❤️*
 
@@ -35,51 +39,61 @@ cmd(
 𝐌𝐚𝐝𝐞 𝐛𝐲 Shashika
 `;
 
-      // Send metadata thumbnail
+      // Send thumbnail & metadata
       await robin.sendMessage(from, { image: { url: data.thumbnail }, caption: desc }, { quoted: mek });
 
-      // Validate song duration (limit: 30 minutes)
+      // Validate duration (limit 30 min)
       let durationParts = data.timestamp.split(":").map(Number);
       let totalSeconds =
         durationParts.length === 3
           ? durationParts[0] * 3600 + durationParts[1] * 60 + durationParts[2]
           : durationParts[0] * 60 + durationParts[1];
+      if (totalSeconds > 1800) return reply("⏱️ Audio limit is 30 minutes");
 
-      if (totalSeconds > 1800) {
-        return reply("⏱️ Audio limit is 30 minutes");
-      }
-
-      // Download audio to local file
-      const fileName = `${data.title}.mp3`.replace(/[\/\\?%*:|"<>]/g, "_"); // remove invalid filename chars
+      // Prepare file path
+      const fileName = `${data.title}.mp3`.replace(/[\/\\?%*:|"<>]/g, "_");
       const filePath = path.join(__dirname, fileName);
+
+      // Download audio with ytdl
       const stream = ytdl(data.url, { filter: "audioonly", quality: "highestaudio" });
       const writeStream = fs.createWriteStream(filePath);
       stream.pipe(writeStream);
 
       writeStream.on("finish", async () => {
-        // Send as audio
-        await robin.sendMessage(
-          from,
-          { audio: { url: filePath }, mimetype: "audio/mpeg" },
-          { quoted: mek }
-        );
+        try {
+          // Send as audio
+          await robin.sendMessage(
+            from,
+            { audio: { url: filePath }, mimetype: "audio/mpeg" },
+            { quoted: mek }
+          );
 
-        // Send as document for download
-        await robin.sendMessage(
-          from,
-          {
-            document: { url: filePath },
-            mimetype: "audio/mpeg",
-            fileName: fileName,
-            caption: "𝐌𝐚𝐝𝐞 𝐛𝐲 Shashika",
-          },
-          { quoted: mek }
-        );
+          // Send as document
+          await robin.sendMessage(
+            from,
+            {
+              document: { url: filePath },
+              mimetype: "audio/mpeg",
+              fileName: fileName,
+              caption: "𝐌𝐚𝐝𝐞 𝐛𝐲 Shashika",
+            },
+            { quoted: mek }
+          );
 
-        // Delete local file after sending
-        fs.unlinkSync(filePath);
+          // Delete file after sending
+          fs.unlinkSync(filePath);
+          reply("*Thanks for using my bot* 🌚❤️");
+        } catch (err) {
+          console.log(err);
+          reply("❌ Failed to send audio/document");
+          fs.existsSync(filePath) && fs.unlinkSync(filePath);
+        }
+      });
 
-        reply("*Thanks for using my bot* 🌚❤️");
+      // Handle stream errors (like MinigetError 410)
+      stream.on("error", (err) => {
+        console.log(err);
+        reply("❌ Cannot download this video, maybe removed or private.");
       });
     } catch (e) {
       console.log(e);
