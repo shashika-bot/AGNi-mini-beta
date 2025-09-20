@@ -1,12 +1,12 @@
 {
-  "name": "MALU-XD",
+  "name": "AGNi-mini-beta",
   "version": "1.0.0",
   "description": "A WhatsApp bot created using Node.js",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start index.js --deep-monitoring --attach --name MALU",
-    "stop": "pm2 stop MALU",
-    "restart": "pm2 restart MALU"
+    "start": "pm2 start index.js --deep-monitoring --attach --name AGNi-mini-beta",
+    "stop": "pm2 stop AGNi-mini-beta",
+    "restart": "pm2 restart AGNi-mini-beta"
   },
  "dependencies": {
   "@whiskeysockets/baileys": "^6.7.18",
