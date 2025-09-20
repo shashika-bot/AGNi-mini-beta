@@ -13,9 +13,9 @@ cmd(
   },
   async (malvin, mek, m, { reply }) => {
     const developerInfo = {
-      name: "Malvin King",
-      number: "wa.me/263714757857",
-      github: "https://github.com/XdKing2",
+      name: "Shashika Dilshan",
+      number: "wa.me/94776907496",
+      github: "https://github.com/Shashika-sl",
       note: "බොට් එක ගැන support එකක් ඕන නම් msg එකක් දාන්න!",
       image:
         "https://i.ibb.co/SDWZFh23/malvin-xd.jpg",
@@ -29,7 +29,7 @@ cmd(
     // STEP 2: Intro Message
     await malvin.sendMessage(
       mek.key.remoteJid,
-      { text: "👋 *HEY I AM THE DEVELOPER!*" },
+      { text: "👋 *HEY I AM A DEVELOPER!*" },
       { quoted: mek }
     );
 
