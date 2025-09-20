@@ -1,5 +1,6 @@
-const config = require('../settings');
-const { lite } = require('../lite');
+const config = require('../command');
+const yts = require("yt-search");
+const axios = require("axios");
 const DY_SCRAP = require('@dark-yasiya/scrap');
 const dy_scrap = new DY_SCRAP();
 
