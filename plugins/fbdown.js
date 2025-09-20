@@ -31,7 +31,7 @@ cmd(
         from,
         {
           video: { url: videoUrl },
-          caption: `📘 *${title || "Facebook Video"}*\n\n_*𝗠𝗔𝗟𝗨 𝗫𝗗 𝙁𝘽 𝘿𝙊𝙒𝙉𝙇𝙊𝘿𝙀𝙍*_`,
+          caption: `📘 *${title || "Facebook Video"}*\n\n_*AGNI 𝙁𝘽 𝘿𝙊𝙒𝙉𝙇𝙊𝘿𝙀𝙍*_`,
         },
         { quoted: mek }
       );
