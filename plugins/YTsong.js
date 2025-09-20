@@ -1,52 +1,59 @@
-const { exec } = require("child_process");
-const fs = require("fs");
-const yts = require("yt-search");
-const { cmd } = require("../command");
+const config = require('../config');
+const {
+  cmd,
+  commands
+} = require('../command');
+const fetch = require('node-fetch');
 
-cmd(
-  {
-    pattern: "song",
-    desc: "Download YouTube MP3",
-    category: "download",
-    filename: __filename,
-  },
-  async (conn, mek, m, { from, args, reply }) => {
+cmd({
+  pattern: "ytmp3",
+  category: "downloader",
+  react: "🎥",
+  desc: "Download YouTube audios as MP3",
+  filename: __filename
+},
+async(conn, mek, m, {from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply}) => {
     try {
-      const q = args.join(" ");
-      if (!q) return reply("❌ Provide a song name or YouTube URL!");
+        if (!q) return await reply('Please provide a YouTube audio URL.');
 
-      let url = q;
-      if (!q.startsWith("http")) {
-        const search = await yts(q);
-        if (!search.videos.length) return reply("❌ No results found!");
-        url = search.videos[0].url;
-      }
+        const url = encodeURIComponent(q);
+        const response = await fetch(`https://dark-shan-yt.koyeb.app/download/ytmp3?url=${url}`);
+        const data = await response.json();
 
-      const output = `song_${Date.now()}.mp3`;
-      reply("⏳ Downloading... please wait...");
+        if (!data.status) return await reply('Failed to fetch audio details. Please check the URL and try again.');
 
-      exec(
-        `yt-dlp -x --audio-format mp3 -o "${output}" "${url}"`,
-        async (err) => {
-          if (err) {
-            console.error(err);
-            return reply("❌ Download failed!");
-          }
+        const audio = data.data;
+        const message = `
+🎶 𝐘𝐓 𝐒𝐎𝐍𝐆 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 📥
 
-          const buffer = fs.readFileSync(output);
-          await conn.sendMessage(
-            from,
-            { audio: buffer, mimetype: "audio/mpeg", fileName: "song.mp3" },
-            { quoted: mek }
-          );
+╭━━━━━━━━━●●►
+┢❑ 𝐓𝐢𝐭𝐥𝐞: ${audio.title}
+┢❑ 𝐅𝐨𝐫𝐦𝐚𝐭: ${audio.format}
+┢❑ 𝐓𝐢𝐦𝐞: ${audio.timestump || 'N/A'}
+┢❑ 𝐔𝐩𝐥𝐨𝐚𝐝𝐞𝐝: ${audio.ago || 'N/A'}
+┢❑ 𝐕𝐢𝐞𝐰𝐬: ${audio.views || 'N/A'}
+┢❑ 𝐋𝐢𝐤𝐞𝐬: ${audio.likes || 'N/A'}
+╰━━━━━━━━●●►
+        `;
 
-          fs.unlinkSync(output);
-          reply("✅ Song sent!");
-        }
-      );
+       
+        await conn.sendMessage(from, {
+            image: { url: audio.thumbnail },
+            caption: message
+        });
+
+        await conn.sendMessage(from, {
+            document: { url: audio.download },
+            mimetype: 'audio/mp3',
+            fileName: `${audio.title}.mp3`,
+            caption: `your name`
+        });
+
+        await conn.sendMessage(from, {
+            react: { text: '✅', key: mek.key }
+        });
     } catch (e) {
-      console.error(e);
-      reply("❌ Error: " + e.message);
+        console.error(e);
+        await reply(`📕 An error occurred: ${e.message}`);
     }
-  }
-);
+});
