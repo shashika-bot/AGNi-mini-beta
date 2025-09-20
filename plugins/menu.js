@@ -45,7 +45,7 @@ cmd(
 *Wᴇʟᴄᴏᴍᴇ Tᴏ 𝗠𝗔𝗟𝗨 𝗫𝗗* 
 
 ╭─「 🛠️ ꜱᴛᴀᴛᴜꜱ ᴅᴇᴛᴀɪʟꜱ 」 
-│🤖 *Bot*: 𝗠𝗔𝗟𝗨 𝗫𝗗
+│🤖 *Bot*: AGNI
 │🙋‍♂️ *User*: ${user}
 │📱 *Owner*: ${owner}
 │⏳ *Uptime*: ${uptime}
@@ -77,14 +77,14 @@ cmd(
 │   ➥ .tts <text> 
 ╰──────────●●►
 
-> *POWERED BY 𝗠𝗔𝗟𝗨 𝗫𝗗*
+> *POWERED BY AGNI*
 `;
 
       await malvin.sendMessage(
         from,
         {
           image: {
-            url: "https://i.ibb.co/SDWZFh23/malvin-xd.jpg",
+            url: "https://files.catbox.moe/8bkx4q.jpg",
           },
           caption: madeMenu,
         },
