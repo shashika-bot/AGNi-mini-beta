@@ -45,7 +45,7 @@ cmd(
 
       // 4) Send metadata + thumbnail
       const desc = `
-🧩 *MALU AUDIO DOWNLOADER* 🧩
+🧩 *Agni AUDIO DOWNLOADER* 🧩
 
 📌 *Title:* ${info.title || "Unknown"}
 ⏱️ *Uploaded:* ${info.timestamp || "N/A"} (${info.ago || "N/A"})
@@ -62,27 +62,39 @@ cmd(
         { quoted: mek }
       );
 
-      // 5) Audio download helper
-      const downloadAudio = async (videoUrl, quality = "mp3") => {
-        const apiUrl = `https://p.oceansaver.in/ajax/download.php?format=${quality}&url=${encodeURIComponent(
-          videoUrl
-        )}&api=dfcb6d76f2f6a9894gjkege8a4ab232222`;
+      // 5) Audio download helper (with backup APIs)
+      const downloadAudio = async (videoUrl) => {
+        const apis = [
+          `https://api.giftedtech.my.id/api/download/ytmp3?url=${encodeURIComponent(videoUrl)}`,
+          `https://dark-yasiya-api.site/download/ytmp3?url=${encodeURIComponent(videoUrl)}`
+        ];
 
-        const res = await axios.get(apiUrl);
-        if (!res.data.success) throw new Error("Failed to fetch audio details.");
+        for (const apiUrl of apis) {
+          try {
+            const res = await axios.get(apiUrl);
 
-        const { id, title } = res.data;
-        const progressUrl = `https://p.oceansaver.in/ajax/progress.php?id=${id}`;
+            // GiftedTech API response
+            if (res.data?.status && res.data?.result?.download_url) {
+              const audioUrl = res.data.result.download_url;
+              const title = res.data.result.title || "audio";
+              const audio = await axios.get(audioUrl, { responseType: "arraybuffer" });
+              return { buffer: audio.data, title };
+            }
 
-        // Poll until ready
-        while (true) {
-          const prog = (await axios.get(progressUrl)).data;
-          if (prog.success && prog.progress === 1000) {
-            const audio = await axios.get(prog.download_url, { responseType: "arraybuffer" });
-            return { buffer: audio.data, title: title || info.title || "audio" };
+            // Dark Yasiya API response
+            if (res.data?.status && res.data?.result?.link) {
+              const audioUrl = res.data.result.link;
+              const title = res.data.result.title || "audio";
+              const audio = await axios.get(audioUrl, { responseType: "arraybuffer" });
+              return { buffer: audio.data, title };
+            }
+
+          } catch (err) {
+            console.error(`❌ API failed (${apiUrl}):`, err.message);
           }
-          await new Promise((r) => setTimeout(r, 5000));
         }
+
+        throw new Error("All audio APIs failed. Please try again later.");
       };
 
       // 6) Download + send
@@ -98,7 +110,7 @@ cmd(
         { quoted: mek }
       );
 
-      reply("*Thanks for using my MP3 bot!* 🎵");
+      reply("*✅ Thanks for using my MP3 bot!* 🎵");
     } catch (e) {
       console.error("Error:", e);
       reply(`❌ Error: ${e.message}`);
