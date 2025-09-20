@@ -29,7 +29,7 @@ cmd(
       // 2) Send metadata + thumbnail
       const info = (await yts(url)).videos[0];
       const desc = `
-🧩 *𝗠𝗔𝗟𝗨 𝗫𝗗 DOWNLOADER* 🧩
+🧩 *AGNI DOWNLOADER* 🧩
 📌 *Title:* ${info.title}
 
 📝 *Description:* ${info.description}
