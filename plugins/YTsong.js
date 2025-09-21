@@ -1,103 +1,61 @@
 const { cmd } = require("../command");
 const yts = require("yt-search");
 const ytdl = require("ytdl-core");
-const fs = require("fs");
-const path = require("path");
-const events = require("events");
-
-// Fix MaxListenersExceededWarning
-events.EventEmitter.defaultMaxListeners = 50;
 
 cmd(
   {
     pattern: "song",
     react: "🎵",
-    desc: "Download Song",
+    desc: "Download YouTube Audio",
     category: "download",
     filename: __filename,
   },
-  async (robin, mek, m, { from, q, reply }) => {
+  async (bot, mek, m, { from, args, reply }) => {
     try {
-      if (!q) return reply("*නමක් හරි ලින්ක් එකක් හරි දෙන්න* 🌚❤️");
+      const q = args.join(" ");
+      if (!q) return reply("❌ නමක් හරි / YouTube link එකක් දෙන්න 🎵");
 
-      // Search YouTube
-      const search = await yts(q);
-      const data = search.videos[0];
-      if (!data) return reply("❌ Video not found!");
+      // 1) Search video
+      let url = q;
+      try {
+        new URL(q);
+      } catch {
+        const s = await yts(q);
+        if (!s?.videos?.length) return reply("❌ ගීතය හමු නොවීය!");
+        url = s.videos[0].url;
+      }
 
-      // Metadata
-      let desc = `
-*❤️ agni SONG DOWNLOADER ❤️*
+      // 2) Get video details
+      const info = await ytdl.getInfo(url);
+      const details = info.videoDetails;
 
-👻 *title* : ${data.title}
-👻 *description* : ${data.description}
-👻 *time* : ${data.timestamp}
-👻 *ago* : ${data.ago}
-👻 *views* : ${data.views}
-👻 *url* : ${data.url}
+      // 3) Send thumbnail + details
+      await bot.sendMessage(
+        from,
+        {
+          image: { url: details.thumbnails[0].url },
+          caption: `🎶 *${details.title}*\n👀 Views: ${details.viewCount}\n⏱ Duration: ${Math.floor(details.lengthSeconds/60)} min\n🔗 ${url}`
+        },
+        { quoted: mek }
+      );
 
-𝐌𝐚𝐝𝐞 𝐛𝐲 Shashika
-`;
+      // 4) Directly send audio file
+      const audioStream = ytdl(url, { filter: "audioonly", quality: "highestaudio" });
 
-      // Send thumbnail & metadata
-      await robin.sendMessage(from, { image: { url: data.thumbnail }, caption: desc }, { quoted: mek });
+      await bot.sendMessage(
+        from,
+        {
+          audio: audioStream,  // <-- Direct file!
+          mimetype: "audio/mpeg",
+          fileName: `${details.title}.mp3`,
+        },
+        { quoted: mek }
+      );
 
-      // Validate duration (limit 30 min)
-      let durationParts = data.timestamp.split(":").map(Number);
-      let totalSeconds =
-        durationParts.length === 3
-          ? durationParts[0] * 3600 + durationParts[1] * 60 + durationParts[2]
-          : durationParts[0] * 60 + durationParts[1];
-      if (totalSeconds > 1800) return reply("⏱️ Audio limit is 30 minutes");
-
-      // Prepare file path
-      const fileName = `${data.title}.mp3`.replace(/[\/\\?%*:|"<>]/g, "_");
-      const filePath = path.join(__dirname, fileName);
-
-      // Download audio with ytdl
-      const stream = ytdl(data.url, { filter: "audioonly", quality: "highestaudio" });
-      const writeStream = fs.createWriteStream(filePath);
-      stream.pipe(writeStream);
-
-      writeStream.on("finish", async () => {
-        try {
-          // Send as audio
-          await robin.sendMessage(
-            from,
-            { audio: { url: filePath }, mimetype: "audio/mpeg" },
-            { quoted: mek }
-          );
-
-          // Send as document
-          await robin.sendMessage(
-            from,
-            {
-              document: { url: filePath },
-              mimetype: "audio/mpeg",
-              fileName: fileName,
-              caption: "𝐌𝐚𝐝𝐞 𝐛𝐲 Shashika",
-            },
-            { quoted: mek }
-          );
-
-          // Delete file after sending
-          fs.unlinkSync(filePath);
-          reply("*Thanks for using my bot* 🌚❤️");
-        } catch (err) {
-          console.log(err);
-          reply("❌ Failed to send audio/document");
-          fs.existsSync(filePath) && fs.unlinkSync(filePath);
-        }
-      });
-
-      // Handle stream errors (like MinigetError 410)
-      stream.on("error", (err) => {
-        console.log(err);
-        reply("❌ Cannot download this video, maybe removed or private.");
-      });
+      reply("✅ ගීතය Directly ගෙනා! 🎵");
     } catch (e) {
-      console.log(e);
-      reply(`❌ Error: ${e.message}`);
+      console.error(e);
+      reply("❌ Error: " + e.message);
     }
   }
 );
