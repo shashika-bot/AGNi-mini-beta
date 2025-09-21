@@ -1,46 +1,33 @@
-name: Node.js Bot CI/CD
+name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  bot-run:
+  build:
+
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [20.x] # Node version එක
+        node-version: [20.x]
 
     steps:
-      # 1️⃣ Checkout repo
-      - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      # 3️⃣ Install dependencies
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm install
 
-      # 4️⃣ Build project (if any)
-      - name: Build
-        run: npm run build --if-present
-
-      # 5️⃣ Run tests (if any)
-      - name: Run Tests
-        run: npm test --if-present
-
-      # 6️⃣ Start Bot (using pm2)
-      - name: Start Bot
-        run: |
-          npm install pm2 -g
-          pm2 start index.js --name "AGNi-bot"
-          pm2 list
-          pm2 logs --lines 50
+    - name: Start application
+      run: npm start
